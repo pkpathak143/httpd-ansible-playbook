@@ -1,0 +1,44 @@
+- hosts: web
+  tasks:
+    - file:
+        state: directory
+        path: "/dvd1"  
+    
+    - mount:
+        src: "/dev/cdrom"
+        path: "/dev1"
+        state: mounted
+        fstype: "iso9660"
+
+    - yum_repository:
+        baseurl: "/dvd1/AppStream"
+        name: "mydvd1"
+        description: "my yum dvd1 for packages of AppStream"
+        gpgcheck: no
+
+    - yum_repository:
+        baseurl: "/dvd1/BaseOS"
+        name: "mydvd2"
+        description: "my yum dvd2 for packages of BaseOS"
+        gpgcheck: no
+
+    - package:
+        name: "httpd"
+        state: present
+
+    - copy:
+        dest: "/var/www/html/index.html"
+        content: "Hello! This is my Task 11.3\n"
+      register: x
+
+    - service:
+        name: "httpd"
+        state: restarted
+        enabled: yes
+      when: x.changed == true
+
+    - firewalld:
+        port: "80/tcp"
+        state: enabled
+        permanent: yes
+        immediate: yes
